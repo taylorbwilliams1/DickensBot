@@ -4,16 +4,17 @@ DickensBot.py
 
 Authors: Taylor Williams and Bryn Peters
 
-CSCI 404, Final Project
-WWU, Winter 2017
+CSCI 404 Final Project
+Western Washington University
+Winter 2017
 
 """
 
 import nltk
 import random
+#from urllib import request
 
-#test list
-listy = [['a',5],['b',10],['c',40]]
+biModel = {} 
         
 def weighted_choice(choices):
     totalSum = sum(weights for choice, weights in choices)
@@ -25,5 +26,71 @@ def weighted_choice(choices):
         upto += weight
     #function can't get here
     assert False
+    
+#Using URL downloading in nltk
+"""
+url = "https://www.gutenberg.org/files/1400/1400.txt"
+response = request.urlopen(url)
+print(type(response.read()))
+raw = response.read().decode('utf8')
+tokens = nltk.word_tokenize(raw)
+print(tokens[:11])
 
-#sentences = nltk.sentence_tokenizer(
+
+#from downloaded txt files
+tester = open("expect.txt").read()
+tokens = nltk.sent_tokenize(tester)
+print(tokens[1])
+
+"""
+def senBuilder():
+    word = random.choice(list(biModel.keys()))
+    sentence = word.capitalize()
+    prevWord = word
+    i = 0
+    while i < 40:
+        b = [[k,v] for k,v in biModel[word].items()]
+        word = weighted_choice(b)
+        if word == ".":
+            i = 40
+        elif word in [",", ";", "!", ":"] or "'" in list(word):
+            sentence += word
+        else:
+            sentence += " " + word
+        i += 1
+    sentence += "."
+    print(sentence)
+    
+def mBuilder(wordList):
+    word1 = wordList[0]
+    word2 = wordList[1]
+    if word1 not in biModel:
+        #new bigram
+        biModel.update({word1: {word2: 1}})
+    else:
+        if word2 not in biModel[word1]:
+            #new 2nd word for existing 1st word
+            biModel[word1].update({word2: 1})
+        else:
+            #existing bigram, increment count
+            biModel[word1][word2] += 1
+
+def training(file):
+    biWords = []
+    raw = open(file).read()
+    tokens = nltk.word_tokenize(raw)
+    for word in tokens:
+        if len(biWords) == 2:
+            mBuilder(biWords)
+            biWords.pop(0)
+            biWords.append(word)
+        else:
+            biWords.append(word)
+
+def main():
+    for file in ["expectations.txt", "oliver.txt", "copperfield.txt"]:
+        training(file)
+    senBuilder()
+
+if __name__ == "__main__":
+    main()
